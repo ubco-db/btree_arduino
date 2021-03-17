@@ -183,6 +183,7 @@ void btreePrintNodeBuffer(btreeState *state, id_t pageNum, int depth, void *buff
 		printSpaces(depth*3);
 		printf("Id: %lu Loc: %lu Cnt: %d (%lu, %lu)\n", BTREE_GET_ID(buffer), pageNum, count, *((int32_t*) btreeGetMinKey(state, buffer)), *((int32_t*) btreeGetMaxKey(state, buffer)));
 		/* Print data records (optional) */		
+		/*
 		for (int c=0; c < count; c++)
 		{
 			int32_t key = *((int32_t*) (buffer + state->headerSize + state->recordSize * c));
@@ -190,7 +191,7 @@ void btreePrintNodeBuffer(btreeState *state, id_t pageNum, int depth, void *buff
 			printSpaces(depth*3+2);
 			printf("Key: %lu Value: %lu\n",key, val);			
 		}	
-					
+		*/			
 	}
 }
 
@@ -314,20 +315,13 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 	{	/* Space for record on leaf node. */		
 		/* Insert record onto page in sorted order */					
 		ptr = buf + state->headerSize + state->recordSize * (childNum+1);	
-		
-		/* Shift one record down at a time so do not have any issues with overlapping ranges for memcpy */
-		/* Could also use memmove instead */
-		ptr = buf + state->headerSize + state->recordSize * (count-1);	
-		l = count-1;
-		while (l > childNum)
-		{	
-			memcpy(ptr + state->recordSize, ptr, state->recordSize);					
-			l--;
-			ptr -= state->recordSize;
-		}
+		/* Shift records down */
+		if (count-childNum-1 > 0)
+		{	/* memmove required as overlapping memory */
+			memmove(ptr + state->recordSize, ptr, state->recordSize*(count-childNum));					
+		}		
 			
-		/* Copy record onto page */	
-		ptr = buf + state->headerSize + state->recordSize * (childNum+1);		
+		/* Copy record onto page */			
 		memcpy(ptr, key, state->keySize);
 		memcpy(ptr + state->keySize, data, state->dataSize);
 
@@ -360,23 +354,11 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 		memcpy(state->tempData, ptr + state->keySize, state->dataSize);
 
 		/* Shift records at and after insert point down one record */
-	//	ptr =  buf + state->headerSize + state->recordSize * (childNum+1);
-	//	if ((mid-childNum-1) > 0)
-//			memcpy(ptr + state->recordSize, ptr, state->recordSize*(mid-childNum-1));		
-		printf("SHIFT HERE\n");
-		ptr = buf + state->headerSize + state->recordSize * (mid-childNum-1);	
-		int16_t l = mid-childNum-1;
-
-		/* Shift one record down at a time so do not have any issues with overlapping ranges for memcpy */
-		while (l > childNum)
-		{	printf("COPY: %d\n", (l));
-			memcpy(ptr + state->recordSize, ptr, state->recordSize);					
-			l--;
-			ptr -= state->recordSize;
-		}
-
-		/* Copy record onto page */
-		ptr = buf + state->headerSize + state->recordSize * (childNum+1);
+		ptr =  buf + state->headerSize + state->recordSize * (childNum+1);
+		if ((mid-childNum-1) > 0)
+			memmove(ptr + state->recordSize, ptr, state->recordSize*(mid-childNum-1));
+		
+		/* Copy record onto page */		
 		memcpy(ptr, key, state->keySize);
 		memcpy(ptr + state->keySize, data, state->dataSize);
 
@@ -431,8 +413,7 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 	for (l=state->levels-2; l >=0; l--)
 	{		
 		parent = state->activePath[l];				
-
-		printf("Here: Left: %d  Right: %d Key: %d  Parent: %d", left, right, *((int32_t*) state->tempKey), parent);
+		// printf("Here: Left: %d  Right: %d Key: %d  Parent: %d", left, right, *((int32_t*) state->tempKey), parent);
 
 		/* Read parent node */
 		buf = readPageBuffer(state->buffer, parent, 0);			/* Forcing read to buffer 0 even if buffered in another buffer as will modify this page. */
@@ -444,7 +425,7 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 		{	/* Space for key/pointer in page */
 			childNum = btreeSearchNode(state, buf, state->tempKey, parent, 1);		
 	
-			/* Note: memcpy with overlapping ranges. May be an issue on some platforms */
+			/* Note: memcpy with overlapping ranges. May be an issue on some platform. Using memmove. */
 			ptr = buf + state->headerSize + state->keySize * (childNum);
 			/* Shift down all keys */
 			memmove(ptr + state->keySize, ptr, state->keySize * (count-childNum));		
@@ -500,11 +481,11 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 			if ((mid-childNum) > 0)
 			{
 				/* Shift down all keys */
-				memcpy(ptr + state->keySize, ptr, state->keySize*(mid-childNum));
+				memmove(ptr + state->keySize, ptr, state->keySize*(mid-childNum));
 
 				/* Shift down all pointers */
 				ptr = buf + state->headerSize  + state->keySize * state->maxInteriorRecordsPerPage + sizeof(id_t) * (childNum+1);
-				memcpy(ptr + sizeof(id_t), ptr, sizeof(id_t)*(mid-childNum));		
+				memmove(ptr + sizeof(id_t), ptr, sizeof(id_t)*(mid-childNum));		
 			}				
 
 			/* Copy record onto page */

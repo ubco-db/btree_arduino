@@ -65,45 +65,14 @@ int32_t checkValues(btreeState *state, void* recordBuffer, int32_t* vals, uint32
  */ 
 void runalltests_btree()
 {    
-    printf("HERE1\n");
     uint32_t errors = 0;
-    uint32_t i, j;
+    uint32_t i;
 
     srand(1);
     randomseqState rnd;
-    rnd.size = 100;
-    uint32_t n = 100; 
+    rnd.size = 1000;
+    uint32_t n = rnd.size; 
     rnd.prime = 0;
-/*
-        printf("HERE2\n");
-    randomseqInit(&rnd);
-    uint32_t *vals = (uint32_t*) malloc(n * sizeof(uint32_t));
-
-    for (uint32_t i=0; i < n; i++)
-    {
-        vals[i] = randomseqNext(&rnd);
-        // printf("%d\n", vals[i]);
-        // See if number exists 
-        for (j=0; j < i; j++)
-            if (vals[j] == vals[i])
-            {   printf("Error: Number generated: %d\n", vals[j]);
-           //     return;
-            }
-    }
-
-    // Check if can regenerate sequence 
-    srand(1);
-    randomseqInit(&rnd);
-    for (i=0; i < n; i++)
-    {
-        uint32_t tmp = randomseqNext(&rnd);
-        printf("%d %d\n", tmp, vals[i]);
-        if (tmp != vals[i])
-            printf("ERROR with sequence.\n");
-    }
-    
-printf("HERE3\n");
-   */
 
     int8_t M = 3;        
    
@@ -121,7 +90,7 @@ printf("HERE3\n");
     state->keySize = 4;
     state->dataSize = 12;       
 
-    /* Connections betwen buffer and btree */
+    /* Connections between buffer and btree */
     buffer->activePath = state->activePath;
     buffer->state = state;    
 
@@ -129,17 +98,17 @@ printf("HERE3\n");
     state->tempData = malloc(12); 
     int8_t* recordBuffer = (int8_t*) malloc(state->recordSize);
 
-    state->mappingBufferSize = 5000;
+    state->mappingBufferSize = 1000;
     state->mappingBuffer = malloc(state->mappingBufferSize);	
-printf("HERE4\n");
-    /* Setup output file. TODO: Will replace with direct memory access. */
+
+    /* Setup output file. */
     ION_FILE *fp;
     fp = fopen("myfile.bin", "w+b");
     if (NULL == fp) {
         printf("Error: Can't open file!\n");
         return;
     }
-    printf("HERE5\n");
+    
     buffer->file = fp;
 
     state->parameters = 0;    
@@ -147,7 +116,7 @@ printf("HERE4\n");
 
     /* Initialize btree structure with parameters */
     btreeInit(state);
-  printf("HERE6\n");
+  
     /* Data record is empty. Only need to reset to 0 once as reusing struct. */        
     for (i = 0; i < (uint16_t) (state->recordSize-4); i++) // 4 is the size of the key
     {
@@ -155,25 +124,21 @@ printf("HERE4\n");
     }
 
     unsigned long start = millis();   
-  printf("HERE7\n");
+  
     srand(1);
     randomseqInit(&rnd);
-  printf("HERE8\n");
+  
     for (i = 0; i < n ; i++)
     {           
-        id_t v = randomseqNext(&rnd);// vals[i]; 
-        
-       // printf("\n****STARTING KEY: %d\n",v);
-        // btreePrint(state);    
+        id_t v = randomseqNext(&rnd);
+               
 /*
         if (v == 375 || v == 151)       
         {
             printf("KEY: %d\n",v);
-            btreePrint(state);    
-            btreePrintMappings(state);       
+            btreePrint(state);       
         }
-    */
-       // printf("KEY: %d\n",v);
+    */       
         *((int32_t*) recordBuffer) = v;
         *((int32_t*) (recordBuffer+4)) = v;             
 
@@ -183,25 +148,11 @@ printf("HERE4\n");
             printf("INSERT ERROR: %d\n", v);
             return;
         }
-        /*
-        if (v == 204 || v == 151)       
-        {
-            printf("KEY: %d\n",v);
-            btreePrint(state);  
-            btreePrintMappings(state);         
-        }
-        */
-       /*
-        if (checkValues(state, recordBuffer, vals, i) > 0)
-        {   printf("Error finding value. Key: %d\n", v);
-            btreePrint(state);   
-            return;
-        }
-        */
-        if (i % 1 == 0)
+        
+        if (i % 100 == 0)
         {           
             printf("Num: %lu KEY: %lu\n", i, v);
-            btreePrint(state);               
+            // btreePrint(state);               
         }        
     }    
 
