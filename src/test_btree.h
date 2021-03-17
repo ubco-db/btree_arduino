@@ -65,16 +65,17 @@ int32_t checkValues(btreeState *state, void* recordBuffer, int32_t* vals, uint32
  */ 
 void runalltests_btree()
 {    
+    printf("HERE1\n");
     uint32_t errors = 0;
     uint32_t i, j;
 
     srand(1);
     randomseqState rnd;
-    rnd.size = 1000;
-    uint32_t n = 1000; 
+    rnd.size = 100;
+    uint32_t n = 100; 
     rnd.prime = 0;
-
-        
+/*
+        printf("HERE2\n");
     randomseqInit(&rnd);
     uint32_t *vals = (uint32_t*) malloc(n * sizeof(uint32_t));
 
@@ -96,13 +97,14 @@ void runalltests_btree()
     for (i=0; i < n; i++)
     {
         uint32_t tmp = randomseqNext(&rnd);
-       //  printf("%d %d\n", tmp, vals[i]);
+        printf("%d %d\n", tmp, vals[i]);
         if (tmp != vals[i])
             printf("ERROR with sequence.\n");
     }
     
+printf("HERE3\n");
+   */
 
-   
     int8_t M = 3;        
    
     /* Configure buffer */
@@ -129,7 +131,7 @@ void runalltests_btree()
 
     state->mappingBufferSize = 5000;
     state->mappingBuffer = malloc(state->mappingBufferSize);	
-
+printf("HERE4\n");
     /* Setup output file. TODO: Will replace with direct memory access. */
     ION_FILE *fp;
     fp = fopen("myfile.bin", "w+b");
@@ -137,7 +139,7 @@ void runalltests_btree()
         printf("Error: Can't open file!\n");
         return;
     }
-    
+    printf("HERE5\n");
     buffer->file = fp;
 
     state->parameters = 0;    
@@ -145,7 +147,7 @@ void runalltests_btree()
 
     /* Initialize btree structure with parameters */
     btreeInit(state);
-
+  printf("HERE6\n");
     /* Data record is empty. Only need to reset to 0 once as reusing struct. */        
     for (i = 0; i < (uint16_t) (state->recordSize-4); i++) // 4 is the size of the key
     {
@@ -153,12 +155,12 @@ void runalltests_btree()
     }
 
     unsigned long start = millis();   
-
+  printf("HERE7\n");
     srand(1);
     randomseqInit(&rnd);
-
+  printf("HERE8\n");
     for (i = 0; i < n ; i++)
-    {   
+    {           
         id_t v = randomseqNext(&rnd);// vals[i]; 
         
        // printf("\n****STARTING KEY: %d\n",v);
@@ -196,10 +198,10 @@ void runalltests_btree()
             return;
         }
         */
-        if (i % 10000 == 0)
+        if (i % 1 == 0)
         {           
-            printf("Num: %d KEY: %d\n", i, v);
-            //btreePrint(state);               
+            printf("Num: %lu KEY: %lu\n", i, v);
+            btreePrint(state);               
         }        
     }    
 

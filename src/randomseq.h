@@ -51,6 +51,7 @@ typedef struct {
 
 void randomseqInit(randomseqState *state)
 {
+    printf("Random sequence init:\n");
     state->index = 0;    
     if (state->prime == 0)
     {   /* Find a prime nunmber. */
@@ -98,6 +99,7 @@ uint32_t randomseqNext(randomseqState *state)
     if (retval < state->size)
         return retval;
         
+    // printf("NExt: %d %d", retval, state->size);
     return randomseqNext(state);    
 }    
       

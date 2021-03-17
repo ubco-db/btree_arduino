@@ -82,6 +82,8 @@ void setup() {
   root.remove(root,"myfile2.bin");
 
   SD.begin(4);
+
+  printf("STARTING\n");
   runalltests_btree(); 
 }
 

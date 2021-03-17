@@ -350,8 +350,11 @@ void* initBufferPage(dbbuffer *state, int pageNum)
 	/* Insure all values are 0 in page. */
 	/* TODO: May want to initialize to all 1s for certain memory types. */	
 	void *buf = state->buffer + pageNum * state->pageSize;
+	// printf("BUF: %lu  Page: %d\n", *((uint32_t*) buf), pageNum);
+	// printf("Num: %d\n", state->pageSize/sizeof(int32_t));
 	for (uint16_t i = 0; i < state->pageSize/sizeof(int32_t); i++)
     {
+		// printf("%d\n", i);
         ((int32_t*) buf)[i] = 0;
     }
 	
