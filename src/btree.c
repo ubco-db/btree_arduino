@@ -100,8 +100,9 @@ void btreeInit(btreeState *state)
 	state->maxInteriorRecordsPerPage = (state->buffer->pageSize - state->headerSize - sizeof(id_t)) / (state->keySize+sizeof(id_t));
 
 	/* Hard-code for testing */
-	state->maxRecordsPerPage = 5;
-	state->maxInteriorRecordsPerPage = 4;	
+	// state->maxRecordsPerPage = 25;
+	// state->maxInteriorRecordsPerPage = 50;	
+	printf("Max: %d MaxI: %d\n", state->maxRecordsPerPage, state->maxInteriorRecordsPerPage);
 
 	state->levels = 1;	
 	state->numNodes = 1;
@@ -182,7 +183,7 @@ void btreePrintNodeBuffer(btreeState *state, id_t pageNum, int depth, void *buff
 		printSpaces(depth*3);
 		printf("Id: %lu Loc: %lu Cnt: %d (%lu, %lu)\n", BTREE_GET_ID(buffer), pageNum, count, *((int32_t*) btreeGetMinKey(state, buffer)), *((int32_t*) btreeGetMaxKey(state, buffer)));
 		/* Print data records (optional) */		
-		/*
+		
 		for (int c=0; c < count; c++)
 		{
 			int32_t key = *((int32_t*) (buffer + state->headerSize + state->recordSize * c));
@@ -190,7 +191,7 @@ void btreePrintNodeBuffer(btreeState *state, id_t pageNum, int depth, void *buff
 			printSpaces(depth*3+2);
 			printf("Key: %lu Value: %lu\n",key, val);			
 		}	
-		*/			
+					
 	}
 }
 
@@ -316,7 +317,7 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 		/* Shift records down */
 		if (count-childNum-1 > 0)
 		{	/* memmove required as overlapping memory */
-			memmove(ptr + state->recordSize, ptr, state->recordSize*(count-childNum));					
+			memmove(ptr + state->recordSize, ptr, state->recordSize*(count-childNum-1));					
 		}		
 			
 		/* Copy record onto page */			
@@ -421,8 +422,8 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 		int16_t count =  BTREE_GET_COUNT(buf); 
 		if (count < state->maxInteriorRecordsPerPage)
 		{	/* Space for key/pointer in page */
-			childNum = btreeSearchNode(state, buf, state->tempKey, parent, 1);		
-	
+			childNum = btreeSearchNode(state, buf, state->tempKey, parent, 1);	
+			
 			/* Note: memcpy with overlapping ranges. May be an issue on some platform. Using memmove. */
 			ptr = buf + state->headerSize + state->keySize * (childNum);
 			/* Shift down all keys */
@@ -439,14 +440,14 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 			memcpy(ptr, &left, sizeof(id_t));
 			memcpy(ptr + sizeof(id_t), &right, sizeof(id_t));
 
-			BTREE_INC_COUNT(buf);			
-
+			BTREE_INC_COUNT(buf);		
+			
 			/* Write page */			
 			pageNum = overWritePage(state->buffer, buf, parent);
 			
 			if (l == 0)
 			{	/* Update root */
-				state->activePath[0] = pageNum;
+				state->activePath[0] = pageNum;								
 			}			
 
 			return 0;

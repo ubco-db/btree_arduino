@@ -128,14 +128,14 @@ void runalltests_btree()
     for (i = 0; i < n ; i++)
     {           
         id_t v = randomseqNext(&rnd);
-               
-/*
-        if (v == 375 || v == 151)       
+               /*
+  printf("KEY: %d\n",v);
+        if (v == 998 || v == 615 || i > 57)       
         {
             printf("KEY: %d\n",v);
             btreePrint(state);       
         }
-    */       
+           */
         *((int32_t*) recordBuffer) = v;
         *((int32_t*) (recordBuffer+4)) = v;             
 

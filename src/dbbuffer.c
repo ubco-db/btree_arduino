@@ -142,7 +142,7 @@ void* readPage(dbbuffer *state, id_t pageNum)
 		{
 			state->bufferHits++;
 			buf = state->buffer + state->pageSize*i;
-			state->lastHit = state->status[i];
+			state->lastHit = state->status[i];			
 			return buf;
 		}
 	}
@@ -288,6 +288,8 @@ int32_t writePageDirect(dbbuffer *state, void* buffer, int32_t pageNum)
 */
 int32_t overWritePage(dbbuffer *state, void* buffer, int32_t pageNum)
 {			
+	// printf("Write node %d\n", pageNum);
+	// btreePrintNodeBuffer(state->state, pageNum, 0, buffer);
 	/* Seek to page location in file */
     fseek(state->file, pageNum*state->pageSize, SEEK_SET);
 
@@ -307,11 +309,17 @@ int32_t overWritePage(dbbuffer *state, void* buffer, int32_t pageNum)
 	/* Check if buffer contains this page */
 	for (count_t i=1; i < state->numPages; i++)
 	{		
+		// printf("Buffer state: %lu\n", state->status[i]);
+		// btreePrintNodeBuffer(state->state, i, 0, state->buffer + i*state->pageSize);
 		if (state->status[i] == pageNum && pageNum != 0)
 		{	/* Copy over page */
+			if (state->buffer + i*state->pageSize == buffer)
+				break;
+			// printf("COPY BUFFER BUFFER %d PAGE %lu  Status: %d\n", i, pageNum, state->status[i]);			
 			memcpy(state->buffer + i*state->pageSize, buffer, state->pageSize);
 			// Other choice is to clear the buffer
 			// state->status[i] = 0;			
+			break;
 		}
 	}
 
