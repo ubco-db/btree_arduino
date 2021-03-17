@@ -100,17 +100,17 @@ void btreeInit(btreeState *state)
 	state->maxInteriorRecordsPerPage = (state->buffer->pageSize - state->headerSize - sizeof(id_t)) / (state->keySize+sizeof(id_t));
 
 	/* Hard-code for testing */
-	// state->maxRecordsPerPage = 5;
-	// state->maxInteriorRecordsPerPage = 4;	
+	state->maxRecordsPerPage = 5;
+	state->maxInteriorRecordsPerPage = 4;	
 
 	state->levels = 1;
 	state->numMappings = 0;
 	state->numNodes = 1;
 
 	/* Create and write empty root node */
-	void *buf = initBufferPage(state->buffer, 0);
+	void *buf = initBufferPage(state->buffer, 0);	
 	BTREE_SET_ROOT(buf);	
-	state->activePath[0] = writePage(state->buffer, buf);		/* Store root location */		
+	state->activePath[0] = writePage(state->buffer, buf);		/* Store root location */			
 }
 
 
@@ -141,6 +141,12 @@ void* btreeGetMaxKey(btreeState *state, void *buffer)
 	return (void*) (buffer+state->headerSize+(count-1)*state->recordSize);
 }
 
+void printSpaces(int num)
+{
+	for (int i=0; i < num; i++)
+		printf(" ");
+}
+
 /**
 @brief     	Print a node in an in-memory buffer.
 @param     	state
@@ -158,9 +164,10 @@ void btreePrintNodeBuffer(btreeState *state, id_t pageNum, int depth, void *buff
 
 	if (BTREE_IS_INTERIOR(buffer) && state->levels != 1)
 	{		
-		printf("%*cId: %lu Loc: %lu Cnt: %d [%d, %d]\n", depth*3, ' ', BTREE_GET_ID(buffer), pageNum, count, (BTREE_IS_ROOT(buffer)), BTREE_IS_INTERIOR(buffer));		
+		printSpaces(depth*3);
+		printf("Id: %lu Loc: %lu Cnt: %d [%d, %d]\n", BTREE_GET_ID(buffer), pageNum, count, (BTREE_IS_ROOT(buffer)), BTREE_IS_INTERIOR(buffer));		
 		/* Print data records (optional) */	
-		printf("%*c", depth*3+2, ' ');	
+		printSpaces(depth*3);		
 		for (c=0; c < count && c < state->maxInteriorRecordsPerPage; c++)
 		{			
 			int32_t key = *((int32_t*) (buffer+state->keySize * c + state->headerSize));
@@ -169,20 +176,21 @@ void btreePrintNodeBuffer(btreeState *state, id_t pageNum, int depth, void *buff
 		}
 		/* Print last pointer */
 		int32_t val = *((int32_t*) (buffer+state->keySize * state->maxInteriorRecordsPerPage + state->headerSize + c*sizeof(id_t)));		
-		printf(" (, %lu)", val);		
+		printf(" (, %lu)\n", val);		
 	}
 	else
 	{		
-		printf("%*cId: %lu Loc: %lu Cnt: %d (%lu, %lu)\n", depth*3, ' ', BTREE_GET_ID(buffer), pageNum, count, *((int32_t*) btreeGetMinKey(state, buffer)), *((int32_t*) btreeGetMaxKey(state, buffer)));
-		/* Print data records (optional) */
-		/*
+		printSpaces(depth*3);
+		printf("Id: %lu Loc: %lu Cnt: %d (%lu, %lu)\n", BTREE_GET_ID(buffer), pageNum, count, *((int32_t*) btreeGetMinKey(state, buffer)), *((int32_t*) btreeGetMaxKey(state, buffer)));
+		/* Print data records (optional) */		
 		for (int c=0; c < count; c++)
 		{
 			int32_t key = *((int32_t*) (buffer + state->headerSize + state->recordSize * c));
 			int32_t val = *((int32_t*) (buffer + state->headerSize + state->recordSize * c + state->keySize));
-			printf("%*cKey: %d Value: %d\n", depth*3+2, ' ', key, val);			
+			printSpaces(depth*3+2);
+			printf("Key: %lu Value: %lu\n",key, val);			
 		}	
-		*/			
+					
 	}
 }
 
@@ -213,7 +221,6 @@ void btreePrintNode(btreeState *state, int pageNum, int depth)
 	{				
 		for (c=0; c < count && c < state->maxInteriorRecordsPerPage; c++)
 		{
-			// uint32_t key = *((int32_t*) (buf+state->keySize * c + state->headerSize));
 			uint32_t val = *((int32_t*) (buf+state->keySize * state->maxInteriorRecordsPerPage + state->headerSize + c*sizeof(id_t)));
 			
 			btreePrintNode(state, val, depth+1);				
@@ -236,11 +243,12 @@ void btreePrintNode(btreeState *state, int pageNum, int depth)
 */
 void btreePrint(btreeState *state)
 {	
-	printf("\n\nPrint tree:\n");
+	printf("\nPrint tree:\n");
 
 	/* Use active path to keep track of stats of nodes at each level */
 	for (count_t l=1; l <= state->levels; l++)
 		state->activePath[l] = 0;
+	
 	btreePrintNode(state, state->activePath[0], 0);
 
 	/* Print out number of nodes per level */
@@ -276,7 +284,7 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 	int8_t 	l;
 	void 	*buf, *ptr;	
 	id_t  	parent, nextId = state->activePath[0];	
-	int32_t pageNum, childNum;
+	int32_t pageNum, childNum;	
 
 	/* Find insert leaf */
 	/* Starting at root search for key */
@@ -301,20 +309,25 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 	childNum = -1;
 	if (count > 0)
 		childNum = btreeSearchNode(state, buf, key, nextId, 1);
-			
-	ptr = buf + state->headerSize + state->recordSize * childNum;
+				
 	if (count < state->maxRecordsPerPage)
 	{	/* Space for record on leaf node. */		
-		/* Insert record onto page in sorted order */		
-		/* Shift records down */
-		if (count-childNum-1 > 0)
-		{
-			memcpy(ptr + state->recordSize, ptr, state->recordSize*(count-childNum));					
+		/* Insert record onto page in sorted order */					
+		ptr = buf + state->headerSize + state->recordSize * (childNum+1);	
+		
+		/* Shift one record down at a time so do not have any issues with overlapping ranges for memcpy */
+		/* Could also use memmove instead */
+		ptr = buf + state->headerSize + state->recordSize * (count-1);	
+		l = count-1;
+		while (l > childNum)
+		{	
+			memcpy(ptr + state->recordSize, ptr, state->recordSize);					
+			l--;
+			ptr -= state->recordSize;
 		}
-
-		childNum++;		/* After search child number is the location where the value is <= key. Increase by one for insert location. */
-		/* Copy record onto page */
-		ptr += state->recordSize;
+			
+		/* Copy record onto page */	
+		ptr = buf + state->headerSize + state->recordSize * (childNum+1);		
 		memcpy(ptr, key, state->keySize);
 		memcpy(ptr + state->keySize, data, state->dataSize);
 
@@ -347,11 +360,23 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 		memcpy(state->tempData, ptr + state->keySize, state->dataSize);
 
 		/* Shift records at and after insert point down one record */
-		ptr =  buf + state->headerSize + state->recordSize * (childNum+1);
-		if ((mid-childNum-1) > 0)
-			memcpy(ptr + state->recordSize, ptr, state->recordSize*(mid-childNum-1));		
+	//	ptr =  buf + state->headerSize + state->recordSize * (childNum+1);
+	//	if ((mid-childNum-1) > 0)
+//			memcpy(ptr + state->recordSize, ptr, state->recordSize*(mid-childNum-1));		
+		printf("SHIFT HERE\n");
+		ptr = buf + state->headerSize + state->recordSize * (mid-childNum-1);	
+		int16_t l = mid-childNum-1;
+
+		/* Shift one record down at a time so do not have any issues with overlapping ranges for memcpy */
+		while (l > childNum)
+		{	printf("COPY: %d\n", (l));
+			memcpy(ptr + state->recordSize, ptr, state->recordSize);					
+			l--;
+			ptr -= state->recordSize;
+		}
 
 		/* Copy record onto page */
+		ptr = buf + state->headerSize + state->recordSize * (childNum+1);
 		memcpy(ptr, key, state->keySize);
 		memcpy(ptr + state->keySize, data, state->dataSize);
 
@@ -407,7 +432,7 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 	{		
 		parent = state->activePath[l];				
 
-		// printf("Here: Left: %d  Right: %d Key: %d  Parent: %d", left, right, *((int32_t*) state->tempKey), parent);
+		printf("Here: Left: %d  Right: %d Key: %d  Parent: %d", left, right, *((int32_t*) state->tempKey), parent);
 
 		/* Read parent node */
 		buf = readPageBuffer(state->buffer, parent, 0);			/* Forcing read to buffer 0 even if buffered in another buffer as will modify this page. */
@@ -422,14 +447,14 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 			/* Note: memcpy with overlapping ranges. May be an issue on some platforms */
 			ptr = buf + state->headerSize + state->keySize * (childNum);
 			/* Shift down all keys */
-			memcpy(ptr + state->keySize, ptr, state->keySize * (count-childNum));		
+			memmove(ptr + state->keySize, ptr, state->keySize * (count-childNum));		
 
 			/* Insert key in page */			
 			memcpy(ptr, state->tempKey, state->keySize);
 
 			/* Shift down all pointers */
 			ptr = buf + state->headerSize + state->keySize * state->maxInteriorRecordsPerPage + sizeof(id_t) * childNum;
-			memcpy(ptr + sizeof(id_t), ptr, sizeof(id_t)*(count-childNum+1));
+			memmove(ptr + sizeof(id_t), ptr, sizeof(id_t)*(count-childNum+1));
 
 			/* Insert pointer in page */			
 			memcpy(ptr, &left, sizeof(id_t));
