@@ -103,8 +103,7 @@ void btreeInit(btreeState *state)
 	state->maxRecordsPerPage = 5;
 	state->maxInteriorRecordsPerPage = 4;	
 
-	state->levels = 1;
-	state->numMappings = 0;
+	state->levels = 1;	
 	state->numNodes = 1;
 
 	/* Create and write empty root node */
@@ -305,7 +304,6 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 	/* Read the leaf node */
 	buf = readPageBuffer(state->buffer, nextId, 0);	/* Note: Use readPageBuffer in buffer 0 to prevent any concurrency issues instead of readPage. */
 	int16_t count =  BTREE_GET_COUNT(buf); 
-	state->nodeSplitId = nextId;
 
 	childNum = -1;
 	if (count > 0)

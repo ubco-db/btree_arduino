@@ -96,10 +96,7 @@ void runalltests_btree()
 
     state->tempKey = malloc(sizeof(int32_t)); 
     state->tempData = malloc(12); 
-    int8_t* recordBuffer = (int8_t*) malloc(state->recordSize);
-
-    state->mappingBufferSize = 1000;
-    state->mappingBuffer = malloc(state->mappingBufferSize);	
+    int8_t* recordBuffer = (int8_t*) malloc(state->recordSize);    	
 
     /* Setup output file. */
     ION_FILE *fp;

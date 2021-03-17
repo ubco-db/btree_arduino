@@ -71,13 +71,6 @@ typedef uint16_t count_t;
 
 #define MAX_LEVEL 8
 
-#define PREV_ID_CONSTANT		10000000
-
-typedef struct {
-	id_t prevPage;								/* Previous page index */
-	id_t currPage;								/* Current page index */
-} btreemapping;
-
 typedef struct {			
 	uint8_t parameters;    						/* Parameter flags */
 	uint8_t keySize;							/* Size of key in bytes (fixed-size records) */
@@ -93,13 +86,8 @@ typedef struct {
 	id_t 	nextPageWriteId;					/* Physical page id of next page to write. */
 	void 	*tempKey;							/* Used to temporarily store a key value. Space must be preallocated. */
 	void 	*tempData;							/* Used to temporarily store a data value. Space must be preallocated. */
-	dbbuffer *buffer;							/* Pre-allocated memory buffer for use by algorithm */	
-	void*	mappingBuffer;						/* Buffer to store mappings */
-	id_t	mappingBufferSize;					/* Size of mapping buffer in bytes */
-	count_t numMappings;						/* Number of mappings */
-	count_t maxMappings;						/* Maximum number of mappings */
-	id_t	numNodes;							/* Total number of nodes in tree */
-	id_t 	nodeSplitId;						/* Physical page id of node currently splitting during write. */
+	dbbuffer *buffer;							/* Pre-allocated memory buffer for use by algorithm */		
+	id_t	numNodes;							/* Total number of nodes in tree */	
 } btreeState;
 
 typedef struct {
