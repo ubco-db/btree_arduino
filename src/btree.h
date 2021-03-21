@@ -106,6 +106,13 @@ typedef struct {
 void btreeInit(btreeState *state);
 
 /**
+@brief     	Recovers a BTree from storage.
+@param     	state
+                BTree algorithm state structure
+*/
+void btreeRecover(btreeState *state);
+
+/**
 @brief     	Puts a given key, data pair into structure.
 @param     	state
                 BTree algorithm state structure
@@ -153,12 +160,6 @@ void btreeInitIterator(btreeState *state, btreeIterator *it);
 */
 int8_t btreeNext(btreeState *state, btreeIterator *it, void **key, void **data);
 
-/**
-@brief     	Flushes output buffer.
-@param     	state
-                BTree algorithm state structure
-*/
-int8_t btreeFlush(btreeState *state);
 
 /**
 @brief     	Prints BTree structure to standard output.
@@ -207,13 +208,6 @@ id_t getChildPageId(btreeState *state, void *buf, id_t pageId, int8_t level, id_
 
 
 /**
-@brief     	Updates the pointers to the current node with latest mappings and removes mapping.
-@param     	state
-                BTree algorithm state structure
-*/
-void btreePrintMappings(btreeState *state);
-
-/**
 @brief     	Print a node in an in-memory buffer.
 @param     	state
                 btree algorithm state structure
@@ -225,66 +219,6 @@ void btreePrintMappings(btreeState *state);
                 In memory page buffer with node data
 */
 void btreePrintNodeBuffer(btreeState *state, id_t pageNum, int depth, void *buffer);
-
-/**
-@brief     	Given a physical page number, returns 0 if valid, -1 if no longer used.
-@param     	state
-                BTree algorithm state structure
-@param		pageNum
-				Physical page number
-@param		parentId
-				Physical page number of parent
-@param		parentBuffer
-				Returns pointer to buffer containing parent node if found, NULL otherwise.
-@return		Returns 0 if page is valid, -1 if no longer used.
-*/
-int8_t btreeIsValid(void *statePtr, id_t pageNum, id_t *parentId, void **parentBuffer);
-
-
-/**
-@brief     	Informs the BTree that the buffer moved a page from prev to curr location.
-			It must update any mappings if required.
-@param     	state
-                BTree algorithm state structure
-@param		prev
-				Previous physical page number
-@param		curr
-				Previous physical page number
-@param		buf
-				Buffer containing the page
-*/
-void btreeMovePage(void *state, id_t prev, id_t curr, void *buf);
-
-/**
-@brief     	Gets a page mapping or returns current page number if no mapping.
-@param     	state
-                BTree algorithm state structure
-@param		pageId
-				physical page index
-*/
-id_t btreeGetMapping(btreeState *state, id_t pageId);
-
-/**
-@brief     	Deletes a page mapping.
-@param     	state
-                BTree algorithm state structure
-@param		prevPage
-				previous physical page index
-*/
-int8_t btreeDeleteMapping(btreeState *state, id_t prevPage);
-
-/**
-@brief     	Sets previous id in buffer based on current value or mapping value.
-@param     	state
-                BTree algorithm state structure
-@param     	buf
-                Buffer containing page
-@param		currId
-				Current id of node
-@return    	previous id stored/used in page
-*/
-id_t btreeUpdatePrev(btreeState *state, void *buf, id_t currId);
-
 
 /**
 @brief     	Clears statistics.

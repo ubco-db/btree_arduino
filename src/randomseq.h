@@ -67,12 +67,7 @@ void randomseqInit(randomseqState *state)
              state->prime = 1000003;
     }
     state->seed1 = rand() % state->prime;
-    state->seed2 = rand() % state->prime;
-    /*
-    state->prime = state->size + (3 - state->size % 4);     
-    while (!state->prime.isProbablePrime (100))
-        state->prime + 4;
-    */      
+    state->seed2 = rand() % state->prime;    
 }
 
 uint32_t permuteQPR(randomseqState *state, uint32_t value)
@@ -85,21 +80,18 @@ uint32_t permuteQPR(randomseqState *state, uint32_t value)
 }
 
 uint32_t randomseqNext(randomseqState *state)
-{
-    // return permuteQPR(state, state->index++);
-    
+{        
     uint32_t tmp = (state->index + state->seed1) % state->prime;
     tmp = (tmp + state->seed2) % state->prime;
     uint32_t retval = permuteQPR(state, permuteQPR (state, tmp));
             
     state->index++;
     if (state->index == state->prime)
-        randomseqInit(state);        // Sequence exhausted. Reinitialize. 
+        randomseqInit(state);        /* Sequence exhausted. Reinitialize. */
 
     if (retval < state->size)
         return retval;
         
-    // printf("NExt: %d %d", retval, state->size);
     return randomseqNext(state);    
 }    
       

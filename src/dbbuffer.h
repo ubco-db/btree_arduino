@@ -79,6 +79,12 @@ typedef struct {
 */
 void dbbufferInit(dbbuffer *state);
 
+/**
+@brief     	Initializes buffer and recovers previous state from storage.
+@param     	state
+                DBbuffer state structure
+*/
+void dbbufferRecover(dbbuffer *state);
 
 /**
 @brief      Reads page either from buffer or from storage. Returns pointer to buffer if success.
@@ -167,18 +173,6 @@ void printStats(dbbuffer *state);
 */
 void dbbufferClearStats(dbbuffer *state);
 
-
-/**
-@brief      Erases physical pages start to end inclusive. Assumes that start and end are aligned according to erase block.
-@param     	state
-               	DBbuffer state structure
-@param     	startPage
-                Physical index of start page
-@param     	endPage
-				Physical index of start page
-@return		Return 0 if success, -1 if failure.
-*/
-int8_t erasePages(dbbuffer *state, id_t startPage, id_t endPage);
 
 #if defined(__cplusplus)
 }

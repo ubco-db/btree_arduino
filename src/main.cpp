@@ -25,7 +25,7 @@ void setup() {
     Serial.println("Wiring is correct and a card is present.");
   }
 
-  // print the type of card
+  /* Print the type of card */
   Serial.println();
   Serial.print("Card type:         ");
   switch (card.type()) {
@@ -42,7 +42,7 @@ void setup() {
       Serial.println("Unknown");
   }
 
-  // Now we will try to open the 'volume'/'partition' - it should be FAT16 or FAT32
+  /* Now we will try to open the 'volume'/'partition' - it should be FAT16 or FAT32 */
   if (!volume.init(card)) {
     Serial.println("Could not find FAT16/FAT32 partition.\nMake sure you've formatted the card");
     while (1);
@@ -57,14 +57,14 @@ void setup() {
   Serial.println(volume.blocksPerCluster() * volume.clusterCount());
   Serial.println();
 
-  // print the type and size of the first FAT-type volume
+  /* Print the type and size of the first FAT-type volume */
   uint32_t volumesize;
   Serial.print("Volume type is:    FAT");
   Serial.println(volume.fatType(), DEC);
 
-  volumesize = volume.blocksPerCluster();    // clusters are collections of blocks
-  volumesize *= volume.clusterCount();       // we'll have a lot of clusters
-  volumesize /= 2;                           // SD card blocks are always 512 bytes (2 blocks are 1KB)
+  volumesize = volume.blocksPerCluster();    /* Clusters are collections of blocks */
+  volumesize *= volume.clusterCount();      
+  volumesize /= 2;                           /* SD card blocks are always 512 bytes (2 blocks are 1KB) */
   Serial.print("Volume size (Kb):  ");
   Serial.println(volumesize);
   Serial.print("Volume size (Mb):  ");
@@ -76,14 +76,13 @@ void setup() {
   Serial.println("\nFiles found on the card (name, date and size in bytes): ");
   root.openRoot(volume);
 
-  // list all files in the card with date and size
+  /* List all files in the card with date and size */
   root.ls(LS_R | LS_DATE | LS_SIZE);
   root.remove(root, "tmpsort.bin");
   root.remove(root,"myfile2.bin");
 
   SD.begin(4);
-
-  printf("STARTING\n");
+  
   runalltests_btree(); 
 }
 

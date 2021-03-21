@@ -102,7 +102,7 @@ void btreeInit(btreeState *state)
 	/* Hard-code for testing */
 	// state->maxRecordsPerPage = 25;
 	// state->maxInteriorRecordsPerPage = 50;	
-	printf("Max: %d MaxI: %d\n", state->maxRecordsPerPage, state->maxInteriorRecordsPerPage);
+	// printf("Max: %d MaxI: %d\n", state->maxRecordsPerPage, state->maxInteriorRecordsPerPage);
 
 	state->levels = 1;	
 	state->numNodes = 1;
@@ -111,6 +111,54 @@ void btreeInit(btreeState *state)
 	void *buf = initBufferPage(state->buffer, 0);	
 	BTREE_SET_ROOT(buf);		
 	state->activePath[0] = writePage(state->buffer, buf);		/* Store root location */				
+}
+
+/**
+@brief     	Recovers a BTree from storage.
+@param     	state
+                BTree algorithm state structure
+*/
+void btreeRecover(btreeState *state)
+{
+	printf("Recovering btree.\n");
+	printf("Buffer size: %d  Page size: %d\n", state->buffer->numPages, state->buffer->pageSize);	
+	state->recordSize = state->keySize + state->dataSize;
+	printf("Record size: %d\n", state->recordSize);	
+	
+	/* Recover and set root node */	
+	dbbufferRecover(state->buffer);
+
+	state->compareKey = uint32Compare;
+
+	/* Calculate block header size */
+	/* Header size fixed: 8 bytes: 4 byte id and 4 for record count. */	
+	state->headerSize = 8;
+
+	/* Calculate number of records per page */
+	state->maxRecordsPerPage = (state->buffer->pageSize - state->headerSize) / state->recordSize;
+	/* Interior records consist of key and id reference. Note: One extra id reference (child pointer). If N keys, have N+1 id references (pointers). */
+	state->maxInteriorRecordsPerPage = (state->buffer->pageSize - state->headerSize - sizeof(id_t)) / (state->keySize+sizeof(id_t));
+
+	state->numNodes = state->buffer->nextPageWriteId-1;
+
+	/* Determine number of levels through search. */
+	state->levels = 1;	
+	id_t nextId = state->activePath[0];
+	while (1)
+	{
+		void *buf = readPage(state->buffer, nextId);
+		if (buf == NULL)
+			break;
+
+		if (BTREE_IS_INTERIOR(buf))
+		{
+			state->levels++;
+			/* Get smallest child pointer */
+			nextId = *((id_t*) (buf + state->headerSize+state->keySize));		
+		}
+		else
+			break;		
+	}	
 }
 
 
@@ -183,7 +231,7 @@ void btreePrintNodeBuffer(btreeState *state, id_t pageNum, int depth, void *buff
 		printSpaces(depth*3);
 		printf("Id: %lu Loc: %lu Cnt: %d (%lu, %lu)\n", BTREE_GET_ID(buffer), pageNum, count, *((int32_t*) btreeGetMinKey(state, buffer)), *((int32_t*) btreeGetMaxKey(state, buffer)));
 		/* Print data records (optional) */		
-		
+		/*
 		for (int c=0; c < count; c++)
 		{
 			int32_t key = *((int32_t*) (buffer + state->headerSize + state->recordSize * c));
@@ -191,7 +239,7 @@ void btreePrintNodeBuffer(btreeState *state, id_t pageNum, int depth, void *buff
 			printSpaces(depth*3+2);
 			printf("Key: %lu Value: %lu\n",key, val);			
 		}	
-					
+		*/		
 	}
 }
 
@@ -229,7 +277,7 @@ void btreePrintNode(btreeState *state, int pageNum, int depth)
 		}	
 		/* Print last child node if active */
 		int32_t val = *((int32_t*) (buf+state->keySize * state->maxInteriorRecordsPerPage + state->headerSize + c*sizeof(id_t)));
-		if (val != 0)	/* TODO: Better way to check for invalid node */
+		if (val != 0)	/* Check for invalid node */
 		{			
 			btreePrintNode(state, val, depth+1);	
 		}
@@ -272,16 +320,7 @@ void btreePrint(btreeState *state)
 @return		Return 0 if success. Non-zero value if error.
 */
 int8_t btreePut(btreeState *state, void* key, void *data)
-{
-	/* Check for capacity. TODO: Determine proper cutoff. For now, number of nodes must be less than total possible nodes - 50% */
-	/*
-	if (state->numNodes >= state->buffer->endDataPage*0.5)
-	{
-		printf("Storage is at capacity. Must delete keys.\n");
-		return -1;
-	}		
-	*/
-	
+{		
 	int8_t 	l;
 	void 	*buf, *ptr;	
 	id_t  	parent, nextId = state->activePath[0];	
@@ -293,7 +332,7 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 	{			
 		buf = readPage(state->buffer, nextId);		
 
-		// Find the key within the node. Sorted by key. Use binary search. 
+		/* Find the key within the node. Sorted by key. Use binary search. */
 		childNum = btreeSearchNode(state, buf, key, nextId, 1);
 		nextId = getChildPageId(state, buf, nextId, l, childNum);		
 		if (nextId == -1)
@@ -412,7 +451,6 @@ int8_t btreePut(btreeState *state, void* key, void *data)
 	for (l=state->levels-2; l >=0; l--)
 	{		
 		parent = state->activePath[l];				
-		// printf("Here: Left: %d  Right: %d Key: %d  Parent: %d", left, right, *((int32_t*) state->tempKey), parent);
 
 		/* Read parent node */
 		buf = readPageBuffer(state->buffer, parent, 0);			/* Forcing read to buffer 0 even if buffered in another buffer as will modify this page. */
@@ -669,7 +707,7 @@ int32_t btreeSearchNode(btreeState *state, void *buffer, void* key, id_t pageId,
 			middle = (first + last)/2;
 		}
 		if (range)			
-		{	// return middle;
+		{	
 			if (last == -1)
 				return -1;
 			return middle;
@@ -849,29 +887,11 @@ int8_t btreeNext(btreeState *state, btreeIterator *it, void **key, void **data)
 						return 0;	
 				}
 				it->currentBuffer = buf;
-
-				/* TODO: Check timestamps, min/max, and bitmap to see if query range overlaps with range of records	stored in block */
-				/* If not read next block */
-			//	if (btree_USING_BMAP(state->parameters))
-				{
-					// uint8_t bm = 0; // BTREE_GET_BITMAP(state, buf);
-					/* TODO: Need to make bitmap comparison more generic. */
-					// if ( ( *((uint8_t*) it->queryBitmap) & bm) >= 1)
-					{	/* Overlap in bitmap - go to next page */
-						break;
-					}
-				//	else
-					{
-					//	printf("Skipping page as no bitmap overlap\n");
-					}					
-				}
-				//else
-			//		break;
+				break;				
 			}
 		}
 		
 		/* Get record */	
-		// btreePrintNodeBuffer(state, 0, 0, buf);
 		*key = buf+state->headerSize+it->lastIterRec[l]*state->recordSize;
 		*data = *key+state->keySize;
 		it->lastIterRec[l]++;
@@ -885,80 +905,6 @@ int8_t btreeNext(btreeState *state, btreeIterator *it, void **key, void **data)
 	}
 }
 
-
-/**
-@brief     	Given a physical page number, returns 0 if valid, -1 if no longer used.
-@param     	state
-                btree algorithm state structure
-@param		pageNum
-				Physical page number
-@param		parentId
-				Physical page number of parent
-@param		parentBuffer
-				Returns pointer to buffer containing parent node if found, NULL otherwise.
-@return		Returns 0 if page is valid, -1 if no longer used.
-*/
-int8_t btreeIsValid(void *statePtr, id_t pageNum, id_t *parentId, void **parentBuffer)
-{	
-	btreeState *state = statePtr;
-	*parentId = 0;	
-	*parentBuffer = NULL;
-
-	/* Search to see if page is still in tree */
-	void *buf = readPage(state->buffer, pageNum);
-	if (buf == NULL)
-		return -1;
-
-	/* TODO: Cannot be hardcoded key. Cannot use state->tempKey. */
-	int32_t key;
-	/* Retrieve minimum key to search for */
-	/* Copying tree off page as will need to read other pages and will most likely lose page in buffer */
-	memcpy(&key, btreeGetMinKey(state, buf), state->keySize);
-
-	/* This code is almost identical to btreeGet as searching but duplicated it for now as can stop early if find node. */
-	/* May be a candidate for code refactorization to avoid this duplication. */
-	/* Starting at root search for key */
-	int8_t l;	
-	id_t childNum, nextId = state->activePath[0];	
-
-	if (nextId == pageNum)
-		return -1;		
-
-	for (l=0; l < state->levels-1; l++)
-	{		
-		buf = readPage(state->buffer, nextId);		
-
-		/* Find the key within the node. */
-		childNum = btreeSearchNode(state, buf, &key, nextId, 0);
-		*parentId = nextId;
-		*parentBuffer = buf;
-		nextId = getChildPageId(state, buf, nextId, l, childNum);
-		if (nextId == pageNum)						
-			return 0;		/* Page is valid page currently in tree */		
-		if (nextId == -1)
-			break;
-	}
-	
-	return -1;
-}
-
-
-/**
-@brief     	Informs the btree that the buffer moved a page from prev to curr location.
-			It must update any mappings if required.
-@param     	state
-                btree algorithm state structure
-@param		prev
-				Previous physical page number
-@param		curr
-				Previous physical page number
-@param		buf
-				Buffer containing the page
-*/
-void btreeMovePage(void *state, id_t prev, id_t curr, void *buf)
-{
-	
-}
 
 /**
 @brief     	Clears statistics.

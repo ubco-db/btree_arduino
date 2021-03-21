@@ -39,27 +39,6 @@
 #include "randomseq.h"
 
 
-int32_t checkValues(btreeState *state, void* recordBuffer, int32_t* vals, uint32_t n)
-{
-     /* Verify that can find all values inserted */
-    uint32_t errors = 0;
-    for (uint32_t i = 0; i < n; i++) 
-    { 
-        int32_t key = vals[i];        
-        int8_t result = btreeGet(state, &key, recordBuffer);
-        if (result != 0) 
-        {   errors++;
-            printf("ERROR: Failed to find: %d\n", key);
-            btreeGet(state, &key, recordBuffer);
-        }
-        else if (*((int32_t*) recordBuffer) != key)
-        {   printf("ERROR: Wrong data for: %d\n", key);
-            printf("Key: %d Data: %d\n", key, *((int32_t*) recordBuffer));
-        }
-    }
-    return errors;
-}
-
 void testIterator(btreeState *state, void *recordBuffer)
 {
      /* Below minimum key search */
@@ -106,12 +85,127 @@ void testIterator(btreeState *state, void *recordBuffer)
         printf("FAILURE\n");           
 }
 
+void testRecovery()
+{
+    srand(3);
+    randomseqState rnd;
+    rnd.size = 1000;
+    uint32_t n = rnd.size; 
+    rnd.prime = 0;
+    uint32_t end, i, errors = 0;
+
+    /* Configure buffer */
+    dbbuffer* buffer = (dbbuffer*) malloc(sizeof(dbbuffer));
+    if (buffer == NULL)
+    {   printf("Failed to allocate buffer struct.\n");
+        return;
+    }
+    buffer->pageSize = 512;
+    buffer->numPages = 3;
+    buffer->status = (id_t*) malloc(sizeof(id_t)*3);
+    if (buffer->status == NULL)
+    {   printf("Failed to allocate buffer status array.\n");
+        return;
+    }
+        
+    buffer->buffer  = malloc((size_t) buffer->numPages * buffer->pageSize);   
+    if (buffer->buffer == NULL)
+    {   printf("Failed to allocate buffer.\n");
+        return;
+    }
+    /* Configure btree state */
+    btreeState* state = (btreeState*) malloc(sizeof(btreeState));
+    if (state == NULL)
+    {   printf("Failed to B-tree state struct.\n");
+        return;
+    }
+    state->recordSize = 16;
+    state->keySize = 4;
+    state->dataSize = 12;       
+
+    /* Connections between buffer and btree */
+    buffer->activePath = state->activePath;
+    buffer->state = state;    
+
+    state->tempKey = malloc(sizeof(int32_t)); 
+    state->tempData = malloc(12); 
+    int8_t* recordBuffer = (int8_t*) malloc(state->recordSize);    	
+
+    /* Setup output file. File must exist. */
+    ION_FILE *fp;
+    fp = fopen("myfile.bin", "r+b");
+    if (NULL == fp) {
+        printf("Error: Can't open file!\n");
+        return;
+    }
+    
+    buffer->file = fp;
+
+    state->parameters = 0;    
+    state->buffer = buffer;
+
+    /* Initialize btree structure with parameters */
+    btreeRecover(state);
+        
+    /* Data record is empty. Only need to reset to 0 once as reusing struct. */        
+    for (i = 0; i < (uint16_t) (state->recordSize-4); i++) // 4 is the size of the key
+    {
+        recordBuffer[i + sizeof(int32_t)] = 0;
+    }
+
+    unsigned long start = millis();   
+
+    
+    printf("\nVerifying and searching for all values.\n");
+    start = millis();
+
+    srand(3);
+    randomseqInit(&rnd);
+
+    /* Verify that can find all values inserted */    
+    for (i = 1; i <= n; i++) 
+    { 
+        int32_t key = randomseqNext(&rnd);
+        int8_t result = btreeGet(state, &key, recordBuffer);
+        if (result != 0) 
+        {   errors++;
+            printf("ERROR: Failed to find: %d\n", key);
+            btreeGet(state, &key, recordBuffer);
+        }
+        else if (*((int32_t*) recordBuffer) != key)
+        {   printf("ERROR: Wrong data for: %d\n", key);
+            printf("Key: %d Data: %d\n", key, *((int32_t*) recordBuffer));
+        }       
+    }
+
+    if (errors > 0)
+        printf("FAILURE: Errors: %d\n", errors);
+    else
+        printf("SUCCESS. All values found!\n");
+    
+    end = millis();
+    printf("Elapsed Time: %lu s\n", (end - start));
+    printf("Records queried: %d\n", n);   
+    printStats(state->buffer);     
+
+    closeBuffer(buffer);    
+        
+    free(state->tempKey);
+    free(state->tempData);
+    free(recordBuffer);
+
+    free(buffer->status);
+    free(state->buffer->buffer);
+    free(buffer);
+    free(state);
+}
+
 /**
  * Runs all tests and collects benchmarks
  */ 
 void runalltests_btree()
 {    
-    uint32_t stepSize = 1000, numSteps = 10;
+    uint32_t stepSize = 100, numSteps = 10;
     count_t r, numRuns = 3, l;
     uint32_t times[numSteps][numRuns];
     uint32_t reads[numSteps][numRuns];
@@ -122,6 +216,12 @@ void runalltests_btree()
     uint32_t rreads[numSteps][numRuns];
     uint32_t rhits[numSteps][numRuns];
 
+    int8_t M = 2;  
+
+    /* Optional: Test recovery. Must run main test first to generate B-tree file. */
+    // testRecovery();
+    // return;
+
     for (r=0; r < numRuns; r++)
     {
         uint32_t errors = 0;
@@ -129,11 +229,9 @@ void runalltests_btree()
 
         srand(r);
         randomseqState rnd;
-        rnd.size = 10000;
+        rnd.size = 1000;
         uint32_t n = rnd.size; 
         rnd.prime = 0;
-
-        int8_t M = 8;        
     
         /* Configure buffer */
         dbbuffer* buffer = (dbbuffer*) malloc(sizeof(dbbuffer));
@@ -257,7 +355,7 @@ void runalltests_btree()
         /* Verify that can find all values inserted */    
         for (i = 1; i <= n; i++) 
         { 
-            int32_t key = randomseqNext(&rnd);// vals[i];
+            int32_t key = randomseqNext(&rnd);
             int8_t result = btreeGet(state, &key, recordBuffer);
             if (result != 0) 
             {   errors++;
@@ -281,7 +379,7 @@ void runalltests_btree()
                 }
             }    
         }
-
+btreePrint(state);  
         l = numSteps-1;       
         rtimes[l][r] = millis()-start;
         rreads[l][r] = state->buffer->numReads;                    
@@ -301,7 +399,7 @@ void runalltests_btree()
         // testIterator(state, recordBuffer);
         // printStats(buffer);
 
-        /* Perform various queries to test performance */
+        /* Clean up and free memory */
         closeBuffer(buffer);    
         
         free(state->tempKey);
@@ -403,6 +501,5 @@ void runalltests_btree()
         }
         printf("\t%lu\n", sum/r);
     }
-
 }
 
