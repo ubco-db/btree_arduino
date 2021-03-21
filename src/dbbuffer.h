@@ -161,6 +161,14 @@ void closeBuffer(dbbuffer *state);
 void printStats(dbbuffer *state);
 
 /**
+@brief     	Clears statistics.
+@param     	state
+                DBbuffer state structure
+*/
+void dbbufferClearStats(dbbuffer *state);
+
+
+/**
 @brief      Erases physical pages start to end inclusive. Assumes that start and end are aligned according to erase block.
 @param     	state
                	DBbuffer state structure

@@ -107,10 +107,10 @@ void btreeInit(btreeState *state)
 	state->levels = 1;	
 	state->numNodes = 1;
 
-	/* Create and write empty root node */
+	/* Create and write empty root node */	
 	void *buf = initBufferPage(state->buffer, 0);	
-	BTREE_SET_ROOT(buf);	
-	state->activePath[0] = writePage(state->buffer, buf);		/* Store root location */			
+	BTREE_SET_ROOT(buf);		
+	state->activePath[0] = writePage(state->buffer, buf);		/* Store root location */				
 }
 
 
@@ -958,4 +958,14 @@ int8_t btreeIsValid(void *statePtr, id_t pageNum, id_t *parentId, void **parentB
 void btreeMovePage(void *state, id_t prev, id_t curr, void *buf)
 {
 	
+}
+
+/**
+@brief     	Clears statistics.
+@param     	state
+                BTree algorithm state structure
+*/
+void btreeClearStats(btreeState *state)
+{
+	dbbufferClearStats(state->buffer);
 }

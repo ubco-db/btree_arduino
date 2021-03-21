@@ -285,6 +285,14 @@ int8_t btreeDeleteMapping(btreeState *state, id_t prevPage);
 */
 id_t btreeUpdatePrev(btreeState *state, void *buf, id_t currId);
 
+
+/**
+@brief     	Clears statistics.
+@param     	state
+                BTree algorithm state structure
+*/
+void btreeClearStats(btreeState *state);
+
 #if defined(__cplusplus)
 }
 #endif

@@ -392,3 +392,16 @@ void printStats(dbbuffer *state)
 	printf("Num writes: %lu\n", state->numWrites);
 	printf("Num overwrites: %lu\n", state->numOverWrites);
 }
+
+/**
+@brief     	Clears statistics.
+@param     	state
+                DBbuffer state structure
+*/
+void dbbufferClearStats(dbbuffer *state)
+{
+	state->numReads = 0;
+	state->numWrites = 0;
+	state->bufferHits = 0;
+	state->numOverWrites = 0;
+}
