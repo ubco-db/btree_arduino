@@ -379,7 +379,7 @@ void runalltests_btree()
                 }
             }    
         }
-btreePrint(state);  
+
         l = numSteps-1;       
         rtimes[l][r] = millis()-start;
         rreads[l][r] = state->buffer->numReads;                    
