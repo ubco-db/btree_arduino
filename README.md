@@ -103,7 +103,7 @@ uint32_t *itKey, *itData;	/* Pointer to key and data value. Valid until next cal
 
 while (btreeNext(state, &it, (void**) &itKey, (void**) &itData))
 {                      
-	printf("Key: %d  Data: %d\n", *itKey, *itData);	
+	printf("Key: %lu  Data: %lu\n", *itKey, *itData);	
 }
 ```
 
