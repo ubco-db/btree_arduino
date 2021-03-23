@@ -70,7 +70,7 @@ if (NULL == fp) {
         
 buffer->file = fp;          
 
-/* Initialize btree structure with parameters */
+/* Initialize B-tree structure */
 btreeInit(state);
 ```
 
