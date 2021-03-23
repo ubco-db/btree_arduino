@@ -7,7 +7,7 @@ The B-Tree implementation for Arduino has the following benefits:
 3. Efficient insert (put) and query (get) of arbitrary key-value data.
 4. Support for iterator to traverse data in sorted order.
 5. Easy to use and include in existing projects. Requires only an Arduino with an SD card.
-6. Open source license. Free
+6. Open source license. Free to use for commerical and open source projects.
 
 ## Code Files
 
