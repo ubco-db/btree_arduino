@@ -57,7 +57,7 @@ state->keySize = 4;
 state->dataSize = 12;       
 state->buffer = buffer;
 
-state->tempKey = malloc(sizeof(state->keySize)); 
+state->tempKey = malloc(state->keySize); 
 state->tempData = malloc(state->dataSize);          	
 
 /* Setup output file. */
