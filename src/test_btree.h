@@ -117,7 +117,7 @@ void testRecovery()
     /* Configure btree state */
     btreeState* state = (btreeState*) malloc(sizeof(btreeState));
     if (state == NULL)
-    {   printf("Failed to B-tree state struct.\n");
+    {   printf("Failed to allocate B-tree state struct.\n");
         return;
     }
     state->recordSize = 16;
@@ -250,7 +250,7 @@ void runalltests_btree()
         /* Configure btree state */
         btreeState* state = (btreeState*) malloc(sizeof(btreeState));
         if (state == NULL)
-        {   printf("Failed to B-tree state struct.\n");
+        {   printf("Failed to allocate B-tree state struct.\n");
             return;
         }
         state->recordSize = 16;
