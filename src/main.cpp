@@ -111,9 +111,8 @@ void setup()
   root.ls(LS_R | LS_DATE | LS_SIZE);
 
   /* Delete any files not needed */
-  root.remove(root, "tmpsort.bin");
-  root.remove(root,"myfile2.bin");
-
+  // root.remove(root, "myfile.bin");
+  
   SD.begin(4);
   
   runalltests_btree(); 

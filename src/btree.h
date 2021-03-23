@@ -39,6 +39,10 @@ extern "C" {
 #ifndef BTREE_H
 #define BTREE_H
 
+#if defined(ARDUINO)
+#include "file/serial_c_iface.h"
+#endif
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
