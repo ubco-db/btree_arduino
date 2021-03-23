@@ -76,17 +76,34 @@ btreeInit(state);
 
 ### Insert (put) items into tree
 
-```
+```c
+btreePut(state, (void*) keyPtr, (void*) dataPtr);
 ```
 
 ### Query (get) items from tree
 
-```
+```c
+/* keyPtr points to key to search for. dataPtr must point to pre-allocated space to copy data into. */
+int8_t result = btreeGet(state, (void*) keyPtr, (void*) dataPtr);
 ```
 
 ### Iterate through items in tree
 
-```
+```c
+btreeIterator it;
+uint32_t minVal = 40;     /* Starting minimum value to start iterator (inclusive) */
+it.minKey = &minVal;
+uint32_t maxVal = 299;	  /* Maximum value to end iterator at (inclusive) */
+it.maxKey = &maxVal;       
+
+btreeInitIterator(state, &it);
+
+uint32_t *itKey, *itData;	/* Pointer to key and data value. Valid until next call to btreeNext(). */
+
+while (btreeNext(state, &it, (void**) &itKey, (void**) &itData))
+{                      
+	printf("Key: %d  Data: %d\n", *itKey, *itData);	
+}
 ```
 
 
