@@ -35,20 +35,20 @@ if (buffer == NULL)
 buffer->pageSize = 512;
 buffer->numPages = M;
 buffer->status = (id_t*) malloc(sizeof(id_t)*M);
-if (buffer->status == NULL)
-{   printf("Failed to allocate buffer status array.\n");
+if (buffer->status == NULL) {   
+	printf("Failed to allocate buffer status array.\n");
 	return;
 }
         
 buffer->buffer  = malloc((size_t) buffer->numPages * buffer->pageSize);   
-if (buffer->buffer == NULL)
-{   printf("Failed to allocate buffer.\n");
+if (buffer->buffer == NULL) {   
+	printf("Failed to allocate buffer.\n");
 	return;
 }
 /* Configure btree state */
 btreeState* state = (btreeState*) malloc(sizeof(btreeState));
-if (state == NULL)
-{   printf("Failed to B-tree state struct.\n");
+if (state == NULL) {   
+	printf("Failed to B-tree state struct.\n");
 	return;
 }
 state->recordSize = 16;
