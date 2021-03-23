@@ -46,6 +46,17 @@ if (buffer->buffer == NULL) {
 	printf("Failed to allocate buffer.\n");
 	return;
 }
+
+/* Setup output file. */
+SD_FILE *fp;
+fp = fopen("myfile.bin", "w+b");
+if (NULL == fp) {
+	printf("Error: Can't open file!\n");
+	return;
+}
+        
+buffer->file = fp;  
+
 /* Configure btree state */
 btreeState* state = (btreeState*) malloc(sizeof(btreeState));
 if (state == NULL) {   
@@ -59,16 +70,6 @@ state->buffer = buffer;
 
 state->tempKey = malloc(state->keySize); 
 state->tempData = malloc(state->dataSize);          	
-
-/* Setup output file. */
-SD_FILE *fp;
-fp = fopen("myfile.bin", "w+b");
-if (NULL == fp) {
-	printf("Error: Can't open file!\n");
-	return;
-}
-        
-buffer->file = fp;          
 
 /* Initialize B-tree structure */
 btreeInit(state);
