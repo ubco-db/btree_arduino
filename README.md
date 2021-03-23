@@ -60,7 +60,7 @@ buffer->file = fp;
 /* Configure btree state */
 btreeState* state = (btreeState*) malloc(sizeof(btreeState));
 if (state == NULL) {   
-	printf("Failed to B-tree state struct.\n");
+	printf("Failed to allocate B-tree state struct.\n");
 	return;
 }
 state->recordSize = 16;
