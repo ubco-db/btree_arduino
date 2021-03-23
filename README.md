@@ -33,6 +33,7 @@ if (buffer == NULL) {
 	return;
 }
 buffer->pageSize = 512;
+uint8_t M = 2;
 buffer->numPages = M;
 buffer->status = (id_t*) malloc(sizeof(id_t)*M);
 if (buffer->status == NULL) {   
