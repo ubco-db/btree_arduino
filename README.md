@@ -28,8 +28,8 @@ The B-Tree implementation for Arduino has the following benefits:
 ```c
 /* Configure buffer */
 dbbuffer* buffer = (dbbuffer*) malloc(sizeof(dbbuffer));
-if (buffer == NULL)
-{   printf("Failed to allocate buffer struct.\n");
+if (buffer == NULL) {   
+	printf("Failed to allocate buffer struct.\n");
 	return;
 }
 buffer->pageSize = 512;
