@@ -34,6 +34,6 @@ The B-Tree implementation for Arduino has the following benefits:
 
 
 
-Ramon Lawrence
-University of British Columbia Okanagan
+#### Ramon Lawrence
+#### University of British Columbia Okanagan
 
