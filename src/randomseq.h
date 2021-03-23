@@ -3,9 +3,9 @@
 @file		randomseq.h
 @author		Ramon Lawrence
 @brief		Generates a sequence of random numbers between 0 and N.
-            Source: https://preshing.com/20121224/how-to-generate-a-sequence-of-unique-random-integers/
+		Source: https://preshing.com/20121224/how-to-generate-a-sequence-of-unique-random-integers/
 @copyright	Copyright 2021
-            The University of British Columbia,		
+		The University of British Columbia,		
 @par Redistribution and use in source and binary forms, with or without
 	modification, are permitted provided that the following conditions are met:
 
