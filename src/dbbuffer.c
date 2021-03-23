@@ -75,7 +75,7 @@ void dbbufferRecover(dbbuffer *state)
 	printf("Recovering from storage.\n");	
 	
 	/* Scan file from end to determine the page with root */
-	ION_FILE* fp = state->file;
+	SD_FILE* fp = state->file;
       
 	fseek(fp, 0, SEEK_END); 
 
@@ -123,8 +123,8 @@ void dbbufferRecover(dbbuffer *state)
 */
 void* readPageBufferInternal(dbbuffer *state, id_t pageNum, count_t bufferNum)
 {
-	void *buf = state->buffer + bufferNum * state->pageSize;	
-	ION_FILE* fp = state->file;
+	void *buf = state->buffer + bufferNum * state->pageSize;		
+	SD_FILE* fp = state->file;
   
     /* Seek to page location in file */
     fseek(fp, pageNum*state->pageSize, SEEK_SET);

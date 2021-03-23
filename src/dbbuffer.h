@@ -39,14 +39,12 @@ extern "C" {
 #ifndef DBBUFFER_H
 #define DBBUFFER_H
 
-#if defined(ARDUINO)
-#include "serial_c_iface.h"
-#include "file/kv_stdio_intercept.h"
-#include "file/sd_stdio_c_iface.h"
-#endif
-
 #include <stdint.h>
 #include <stdio.h>
+
+#if defined(ARDUINO)
+#include "file/sd_stdio_c_iface.h"
+#endif
 
 /* Define type for page ids (physical and logical). */
 typedef uint32_t id_t;
@@ -59,7 +57,7 @@ typedef struct {
 	void  	*buffer;				/* Allocated memory for buffer */
 	count_t	pageSize;				/* Size of buffer page */
 	count_t	numPages;				/* Number of buffer pages */    
-	ION_FILE *file;					/* File for storing data records. */		
+	SD_FILE *file;					/* File for storing data records. */		
 	id_t 	nextPageId;				/* Next logical page id. Page id is an incrementing value and may not always be same as physical page id. */
 	id_t 	nextPageWriteId;		/* Physical page id of next page to write. */	
 	id_t 	numWrites;				/* Number of page writes */

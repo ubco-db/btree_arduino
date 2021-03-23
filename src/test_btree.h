@@ -45,13 +45,13 @@ void testIterator(btreeState *state, void *recordBuffer)
     int32_t key = -1;
     int8_t result = btreeGet(state, &key, recordBuffer);
     if (result == 0) 
-        printf("Error1: Key found: %d\n", key);
+        printf("Error1: Key found: %li\n", key);
 
     /* Above maximum key search */
     key = 3500000;
     result = btreeGet(state, &key, recordBuffer);
     if (result == 0) 
-        printf("Error2: Key found: %d\n", key);
+        printf("Error2: Key found: %li\n", key);
     
     free(recordBuffer);
     
@@ -73,11 +73,11 @@ void testIterator(btreeState *state, void *recordBuffer)
         // printf("Key: %d  Data: %d\n", *itKey, *itData);
         if (i+mv != *itKey)
         {   success = 0;
-            printf("Key: %d Error\n", *itKey);
+            printf("Key: %lu Error\n", *itKey);
         }
         i++;        
     }
-    printf("\nRead records: %d\n", i);
+    printf("\nRead records: %lu\n", i);
 
     if (success && i == (v-mv+1))
         printf("SUCCESS\n");
@@ -132,7 +132,7 @@ void testRecovery()
     int8_t* recordBuffer = (int8_t*) malloc(state->recordSize);    	
 
     /* Setup output file. File must exist. */
-    ION_FILE *fp;
+    SD_FILE *fp;
     fp = fopen("myfile.bin", "r+b");
     if (NULL == fp) {
         printf("Error: Can't open file!\n");
@@ -169,23 +169,23 @@ void testRecovery()
         int8_t result = btreeGet(state, &key, recordBuffer);
         if (result != 0) 
         {   errors++;
-            printf("ERROR: Failed to find: %d\n", key);
+            printf("ERROR: Failed to find: %li\n", key);
             btreeGet(state, &key, recordBuffer);
         }
         else if (*((int32_t*) recordBuffer) != key)
-        {   printf("ERROR: Wrong data for: %d\n", key);
-            printf("Key: %d Data: %d\n", key, *((int32_t*) recordBuffer));
+        {   printf("ERROR: Wrong data for: %li\n", key);
+            printf("Key: %lu Data: %lu\n", key, *((int32_t*) recordBuffer));
         }       
     }
 
     if (errors > 0)
-        printf("FAILURE: Errors: %d\n", errors);
+        printf("FAILURE: Errors: %lu\n", errors);
     else
         printf("SUCCESS. All values found!\n");
     
     end = millis();
     printf("Elapsed Time: %lu s\n", (end - start));
-    printf("Records queried: %d\n", n);   
+    printf("Records queried: %lu\n", n);   
     printStats(state->buffer);     
 
     closeBuffer(buffer);    
@@ -271,7 +271,7 @@ void runalltests_btree()
         int8_t* recordBuffer = (int8_t*) malloc(state->recordSize);    	
 
         /* Setup output file. */
-        ION_FILE *fp;
+        SD_FILE *fp;
         fp = fopen("myfile.bin", "w+b");
         if (NULL == fp) {
             printf("Error: Can't open file!\n");
@@ -308,7 +308,7 @@ void runalltests_btree()
             if (btreePut(state, recordBuffer, (void*) (recordBuffer + 4)) == -1)
             {  
                 btreePrint(state);               
-                printf("INSERT ERROR: %d\n", v);
+                printf("INSERT ERROR: %lu\n", v);
                 return;
             }
             
@@ -359,12 +359,12 @@ void runalltests_btree()
             int8_t result = btreeGet(state, &key, recordBuffer);
             if (result != 0) 
             {   errors++;
-                printf("ERROR: Failed to find: %d\n", key);
+                printf("ERROR: Failed to find: %lu\n", key);
                 btreeGet(state, &key, recordBuffer);
             }
             else if (*((int32_t*) recordBuffer) != key)
-            {   printf("ERROR: Wrong data for: %d\n", key);
-                printf("Key: %d Data: %d\n", key, *((int32_t*) recordBuffer));
+            {   printf("ERROR: Wrong data for: %lu\n", key);
+                printf("Key: %lu Data: %lu\n", key, *((int32_t*) recordBuffer));
             }
 
             if (i % stepSize == 0)
@@ -386,13 +386,13 @@ void runalltests_btree()
         rhits[l][r] = state->buffer->bufferHits;                     
     
         if (errors > 0)
-            printf("FAILURE: Errors: %d\n", errors);
+            printf("FAILURE: Errors: %lu\n", errors);
         else
             printf("SUCCESS. All values found!\n");
         
         end = millis();
         printf("Elapsed Time: %lu s\n", (end - start));
-        printf("Records queried: %d\n", n);   
+        printf("Records queried: %lu\n", n);   
         printStats(state->buffer);     
 
         /* Optional: Test iterator */
