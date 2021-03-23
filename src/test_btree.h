@@ -258,8 +258,8 @@ void runalltests_btree()
         state->dataSize = 12;       
         state->buffer = buffer;
         
-        state->tempKey = malloc(sizeof(int32_t)); 
-        state->tempData = malloc(12);          	
+        state->tempKey = malloc(state->keySize); 
+        state->tempData = malloc(state->dataSize);          	
 
         /* Setup output file. */
         SD_FILE *fp;
@@ -271,7 +271,7 @@ void runalltests_btree()
         
         buffer->file = fp;          
 
-        /* Initialize btree structure with parameters */
+        /* Initialize B-tree structure */
         btreeInit(state);
         
         int8_t* recordBuffer = (int8_t*) malloc(state->recordSize);  
