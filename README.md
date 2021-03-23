@@ -25,7 +25,7 @@ The B-Tree implementation for Arduino has the following benefits:
 
 ### Setup B-tree and Configure Memory
 
-```
+```c
 /* Configure buffer */
 dbbuffer* buffer = (dbbuffer*) malloc(sizeof(dbbuffer));
 if (buffer == NULL)
