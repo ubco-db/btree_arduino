@@ -4,7 +4,8 @@
 @author		Ramon Lawrence
 @brief		This file does performance/correctness testing of BTree.
 @copyright	Copyright 2021
-			The University of British Columbia,		
+			The University of British Columbia,
+            Ramon Lawrence		
 @par Redistribution and use in source and binary forms, with or without
 	modification, are permitted provided that the following conditions are met:
 
@@ -121,16 +122,11 @@ void testRecovery()
     }
     state->recordSize = 16;
     state->keySize = 4;
-    state->dataSize = 12;       
-
-    /* Connections between buffer and btree */
-    buffer->activePath = state->activePath;
-    buffer->state = state;    
-
+    state->dataSize = 12;         
+    state->buffer = buffer;
     state->tempKey = malloc(sizeof(int32_t)); 
     state->tempData = malloc(12); 
-    int8_t* recordBuffer = (int8_t*) malloc(state->recordSize);    	
-
+    
     /* Setup output file. File must exist. */
     SD_FILE *fp;
     fp = fopen("myfile.bin", "r+b");
@@ -139,10 +135,9 @@ void testRecovery()
         return;
     }
     
-    buffer->file = fp;
+    buffer->file = fp;    
 
-    state->parameters = 0;    
-    state->buffer = buffer;
+    int8_t* recordBuffer = (int8_t*) malloc(state->recordSize);    	
 
     /* Initialize btree structure with parameters */
     btreeRecover(state);
@@ -261,14 +256,10 @@ void runalltests_btree()
         state->recordSize = 16;
         state->keySize = 4;
         state->dataSize = 12;       
-
-        /* Connections between buffer and btree */
-        buffer->activePath = state->activePath;
-        buffer->state = state;    
-
+        state->buffer = buffer;
+        
         state->tempKey = malloc(sizeof(int32_t)); 
-        state->tempData = malloc(12); 
-        int8_t* recordBuffer = (int8_t*) malloc(state->recordSize);    	
+        state->tempData = malloc(12);          	
 
         /* Setup output file. */
         SD_FILE *fp;
@@ -278,14 +269,12 @@ void runalltests_btree()
             return;
         }
         
-        buffer->file = fp;
-
-        state->parameters = 0;    
-        state->buffer = buffer;
+        buffer->file = fp;          
 
         /* Initialize btree structure with parameters */
         btreeInit(state);
         
+        int8_t* recordBuffer = (int8_t*) malloc(state->recordSize);  
         /* Data record is empty. Only need to reset to 0 once as reusing struct. */        
         for (i = 0; i < (uint16_t) (state->recordSize-4); i++) // 4 is the size of the key
         {

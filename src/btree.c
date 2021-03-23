@@ -4,7 +4,8 @@
 @author		Ramon Lawrence
 @brief		Implementation of B-Tree for small memory embedded devices.
 @copyright	Copyright 2021
-			The University of British Columbia,		
+			The University of British Columbia,
+			Ramon Lawrence		
 @par Redistribution and use in source and binary forms, with or without
 	modification, are permitted provided that the following conditions are met:
 
@@ -87,6 +88,10 @@ void btreeInit(btreeState *state)
 	printf("Record size: %d\n", state->recordSize);	
 	
 	dbbufferInit(state->buffer);
+
+  	/* Connections between buffer and btree */
+    state->buffer->activePath = state->activePath;
+    state->buffer->state = state;    
 
 	state->compareKey = uint32Compare;
 

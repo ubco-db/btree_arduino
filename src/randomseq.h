@@ -6,6 +6,7 @@
 		    Source: https://preshing.com/20121224/how-to-generate-a-sequence-of-unique-random-integers/
 @copyright	Copyright 2021
 		    The University of British Columbia,		
+            Ramon Lawrence
 @par Redistribution and use in source and binary forms, with or without
 	modification, are permitted provided that the following conditions are met:
 

@@ -4,7 +4,8 @@
 @author		Ramon Lawrence
 @brief		Implementation of B-tree for embedded devices.
 @copyright	Copyright 2021
-			The University of British Columbia		
+			The University of British Columbia,
+			Ramon Lawrence		
 @par Redistribution and use in source and binary forms, with or without
 	modification, are permitted provided that the following conditions are met:
 
@@ -76,7 +77,6 @@ typedef uint16_t count_t;
 #define MAX_LEVEL 8
 
 typedef struct {			
-	uint8_t parameters;    						/* Parameter flags */
 	uint8_t keySize;							/* Size of key in bytes (fixed-size records) */
 	uint8_t dataSize;							/* Size of data in bytes (fixed-size records) */
 	uint8_t recordSize;							/* Size of record in bytes (fixed-size records) */
