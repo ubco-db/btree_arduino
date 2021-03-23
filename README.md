@@ -57,8 +57,8 @@ state->keySize = 4;
 state->dataSize = 12;       
 state->buffer = buffer;
 
-state->tempKey = malloc(sizeof(int32_t)); 
-state->tempData = malloc(12);          	
+state->tempKey = malloc(sizeof(state->keySize)); 
+state->tempData = malloc(state->dataSize);          	
 
 /* Setup output file. */
 SD_FILE *fp;
