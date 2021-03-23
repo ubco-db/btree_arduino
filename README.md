@@ -41,7 +41,7 @@ if (buffer->status == NULL) {
 	return;
 }
         
-buffer->buffer  = malloc((size_t) buffer->numPages * buffer->pageSize);   
+buffer->buffer = malloc((size_t) buffer->numPages * buffer->pageSize);   
 if (buffer->buffer == NULL) {   
 	printf("Failed to allocate buffer.\n");
 	return;
