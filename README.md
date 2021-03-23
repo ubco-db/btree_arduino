@@ -1,6 +1,6 @@
 # Efficient B-tree Implementation for Arduino Platform
 
-The B-Tree implementation for Arduino has the following benefits:
+The B-tree implementation for Arduino has the following benefits:
 
 1. Uses the minimum of two page buffers for performing all operations. The memory usage is less than 1.5 KB for 512 byte pages.
 2. No use of dynamic memory (i.e. malloc()). All memory is pre-allocated at creation of the tree.
