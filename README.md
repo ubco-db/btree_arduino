@@ -9,6 +9,9 @@ The B-tree implementation for Arduino has the following benefits:
 5. Easy to use and include in existing projects. Requires only an Arduino with an SD card.
 6. Open source license. Free to use for commerical and open source projects.
 
+## License
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+
 ## Code Files
 
 * test_btree.h - test file demonstrating how to get, put, and iterate through data in B-tree
